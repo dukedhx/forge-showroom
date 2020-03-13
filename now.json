@@ -1,0 +1,11 @@
+{
+"build": {
+  "env": {
+    "CTF_SPACE_ID": "@contentspaceid",
+    "CTF_CDA_ACCESS_TOKEN": "@contentaccesstoken",
+    "FORGE_CLIENT_ID": "@forgeclientid",
+    "FORGE_CLIENT_SECRET": "@forgeclientsecret",
+    "FORGE_CALLBACK_URL": "@forgecallbackurl"
+  }
+  }
+}
