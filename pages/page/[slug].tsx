@@ -1,16 +1,17 @@
 import React from "react";
 import { Layout } from "components/layout";
 import * as DataStaticContext from '../../components/contexts/data';
-import { Page } from "./post.types";
+import { Page } from "services";
 import ReactMarkdownHtml from "react-markdown/with-html";
 import { NextSeo } from "next-seo";
 import Head from 'next/head'
+import { GetStaticPaths, GetStaticProps } from 'next';
 
 type PageProps={
   page:Page
 }
 
-const PageDetail = (page:PageProps)=>{
+export default ({page}:PageProps)=>{
 
   return (
     <>
@@ -26,22 +27,26 @@ const PageDetail = (page:PageProps)=>{
           title: page.title,
           description: page.description,
         }}
-        title={post.title}
+        title={page.title}
         description={page.description}
       />
 
           {!page && <div>Loading...</div>}
-          {page && <ReactMarkdown escapeHtml={false} source={page.body} />}
+          {page && <ReactMarkdownHtml escapeHtml={false} source={page.body} />}
 
     </Layout>
     </>
   )
 }
 
-PageDetail.getInitialProps = async (ctx:any) =>{
-  const { slug } = ctx.query;
-  const page = await DataStaticContext.loadPageById(slug);
-  return { page };
+export const getStaticProps:GetStaticProps = async (ctx:any) =>{
+  const { slug } = ctx.params
+  const page = await DataStaticContext.loadPageById(slug)
+  return { props:{ page } }
 }
 
-export default PageDetail
+export const getStaticPaths: GetStaticPaths = async()=>{
+  const entries = await DataStaticContext.loadPages()
+  const paths = entries.map(page => `/page/${page.slug}`)
+  return { paths, fallback: false  }
+}

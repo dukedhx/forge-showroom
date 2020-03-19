@@ -4,44 +4,138 @@ const api = new PostApi()
 const filter = {
   tags: [],
   selectedTags: [],
-  ids: []
+  ids: [],
+  keyword: '',
+  addIds: (ids: Array<any>) => {
+    let sync = false
+    ids.forEach(
+      e => filter.ids.includes(e) || ((sync = true) && filter.ids.push(e))
+    )
+    sync && syncEntries()
+  },
+  removeIds: (ids: Array<any>) => {
+    let sync = filter.ids.length
+    filter.ids = filter.ids.filter(e => !ids.includes(e))
+    sync != filter.ids.length && syncEntries()
+  }
 }
 
 const entries = {
   entries: new Array<Post>(),
   setEntries: entries => entries
 }
+
 const status = {
-  loading: false
+  liked: [],
+  marked: [],
+  loadText: '',
+  setLoadText: loadText => loadText,
+  setAlert: alert => alert,
+  alert: '',
+  loggedIn: false,
+  login: async (login: boolean) => {
+    if (login) {
+      if (!status.loggedIn) {
+        status.setLoadText('Loading internal contents ...')
+        try {
+          const internals = await fetch('/api/fetchPosts?internalOnly=true')
+            .then(res => res.json())
+            .then(res =>
+              res.map(e =>
+                Object.assign(api.convertPost(e), { internal: true })
+              )
+            )
+          entries.setEntries([...internals, ...entries.entries])
+        } catch (err) {
+          status.setAlert(err)
+        } finally {
+          status.setLoadText('')
+        }
+      }
+    } else {
+      entries.setEntries(entries.entries.filter(e => !e.internal))
+      status.loggedIn = false
+    }
+  },
+  setLoggedIn: login => login
 }
 
 const getFilteredEntries = () =>
-  entries.entries.filter(
-    entry =>
-      (!filter.selectedTags.length ||
-        filter.selectedTags.find(e => entry.tags.includes(e)) != undefined) &&
-      (!filter.ids.length || filter.ids.includes(entry.id))
-  )
+  entries.entries
+    .filter(
+      entry =>
+        (!filter.selectedTags.length ||
+          filter.selectedTags.find(e => entry.tags.includes(e)) != undefined) &&
+        (!filter.ids.length ||
+          filter.ids.find(e => e.id == entry.id || e == entry.id) != undefined)
+    )
+    .map((e, i) => {
+      e.id = e.id || i
+      return e
+    })
 const loadEntries = async () => api.fetchPostEntries()
 const loadTags = async () => api.fetchPostTags()
-const loadEntryById = async id => api.fetchPostById(id)
+const searchEntryByKeywords = async keyword => api.fetchPostByKeyword(keyword)
+const loadEntryById = async (slug, internal?) =>
+  internal
+    ? fetch('api/post/' + slug).then(post => post && api.convertPost(post))
+    : api.fetchPostById(slug)
 const loadPageById = async id => api.fetchPageById(id)
+const syncEntries = () => entries.setEntries(getFilteredEntries())
+const convertPost = post => api.convertPost(post)
+const loadPages = () => []
 export default createContext({
+  status,
   filter,
   entries,
   loadEntries,
-  loading: status.loading,
+  syncEntries,
+  addLikes: (id: string | number) => fetch('/api/likes?id=' + id),
+  getLiked: (): Array<string | number> =>
+    (status.liked = JSON.parse(
+      localStorage.getItem('forge-showroom-likes') || '[]'
+    )),
+  getMarked: (): Array<string | number> =>
+    (status.marked = JSON.parse(
+      localStorage.getItem('forge-showroom-bookmarks') || '[]'
+    )),
   search: async keyword => {
-    filter.ids = await api.fetchPostByKeyword(keyword)
+    if (keyword) {
+      try {
+        status.setLoadText('Searching ' + keyword)
+        filter.ids = [
+          ...filter.ids.filter(e => !e.search),
+          ...(await api.fetchPostByKeyword(keyword)).map(e => ({
+            id: e,
+            search: true
+          }))
+        ]
+      } catch (err) {
+        status.setAlert(err)
+      } finally {
+        status.setLoadText('')
+      }
+      //status.setAlert(JSON.stringify(filter.ids))
+    } else filter.ids = filter.ids.filter(e => !e.search)
     entries.setEntries(getFilteredEntries())
-  },
-  loadProtected: token => {
-    token && entries
   },
   setSelectedTags: tags => {
     filter.selectedTags = tags
     entries.setEntries(getFilteredEntries())
-  }
+  },
+  getLikes: async () =>
+    fetch('/api/likes')
+      .then(res => res.json())
+      .then(res => res.map(e => ({ id: e.sbid, likes: e.likes || 0 })))
+      .catch(console.error)
 })
 
-export { loadEntries, loadTags, loadEntryById, loadPageById }
+export {
+  loadPages,
+  loadEntries,
+  loadTags,
+  loadEntryById,
+  loadPageById,
+  convertPost,
+  searchEntryByKeywords
+}

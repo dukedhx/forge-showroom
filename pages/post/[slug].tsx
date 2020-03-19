@@ -5,6 +5,7 @@ import {  Post } from "services";
 import { NextSeo } from "next-seo";
 import Head from 'next/head'
 import * as DataStaticContext from '../../components/contexts/data';
+import { GetStaticPaths, GetStaticProps } from 'next';
 
 type PostDetailPageProps = {
   post: Post;
@@ -21,7 +22,7 @@ const PostDetailPage = ({post}:PostDetailPageProps) =>{
            <meta name="viewport" content="initial-scale=1.0, width=device-width" />
          </Head>
       <Layout>
-        <NextSeo
+        {post&&<NextSeo
           openGraph={{
             type: "article",
             title: post.title,
@@ -36,7 +37,7 @@ const PostDetailPage = ({post}:PostDetailPageProps) =>{
           }}
           title={post.title}
           description={post.description}
-        />
+        />}
 
             {!post && <div>Loading...</div>}
             {post && <PostDetail post={post} />}
@@ -46,10 +47,16 @@ const PostDetailPage = ({post}:PostDetailPageProps) =>{
     )
 }
 
-PostDetailPage.getInitialProps = async (ctx:any) =>{
-  const { slug } = ctx.query;
+export const getStaticProps:GetStaticProps = async (ctx:any) =>{
+  const { slug } = ctx.params;
   const post = await DataStaticContext.loadEntryById(slug);
-  return { post };
+  return { props:{ post} };
+}
+
+export const getStaticPaths: GetStaticPaths = async()=>{
+  const entries = await DataStaticContext.loadEntries()
+  const paths = entries.map(post => `/post/${post.slug}`)
+  return { paths, fallback: false  }
 }
 
 export default PostDetailPage

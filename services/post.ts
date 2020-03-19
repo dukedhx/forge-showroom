@@ -8,6 +8,7 @@ export class PostApi {
   client: ContentfulClientApi
 
   constructor() {
+    // @ts-ignore
     this.client = createClient({
       space: process.env.CTF_SPACE_ID,
       accessToken: process.env.CTF_CDA_ACCESS_TOKEN
@@ -20,19 +21,25 @@ export class PostApi {
     body: page.fileds.body
   })
 
-  convertTag = (tag): Tag => ({ title: tag.fields.title, id: tag.sys.id })
+  convertTag = (tag): Tag => ({
+    title: tag.fields.title['en-US'] || tag.fields.title,
+    id: tag.sys.id
+  })
 
-  convertPost = (rawData): Post => {
+  convertPost = (rawData, i = ''): Post => {
     const rawPost = rawData.fields
     return {
-      id: rawPost.id,
-      body: rawPost.body,
-      slug: rawPost.slug,
-      description: rawPost.description,
+      id: (rawData.sys && rawData.sys.id) || i,
+      body: (rawPost.body || {})['en-US'] || rawPost.body || '',
+      slug: rawPost.slug['en-US'] || rawPost.slug,
+      description:
+        (rawPost.description || {})['en-US'] || rawPost.description || '',
       date: moment(Date.now()).format('DD MMM YYYY'),
-      tags: (rawPost.tags || []).map(entry => entry.sys.id),
-      title: rawPost.title,
-      imageUrl: rawPost.imageUrl
+      tags: ((rawPost.tags || {})['en-US'] || rawPost.tags || []).map(
+        entry => entry.sys.id
+      ),
+      title: (rawPost.title || {})['en-US'] || rawPost.title || '',
+      imageUrl: (rawPost.imageUrl || {})['en-US'] || rawPost.imageUrl || ''
     }
   }
 
@@ -44,6 +51,15 @@ export class PostApi {
       .then(entries =>
         entries.items ? entries.items.map(entry => this.convertTag(entry)) : []
       )
+  }
+
+  async fetchPostEntriesSelect(select: Array<string>): Promise<Array<any>> {
+    return await this.client
+      .getEntries({
+        content_type: 'post',
+        select: select.join(',')
+      })
+      .then(entries => entries.items)
   }
 
   async fetchPostEntries(): Promise<Array<Post>> {

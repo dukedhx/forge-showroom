@@ -36,7 +36,6 @@ export default class CustomDocument extends Document {
           <Main />
           <NextScript />
         </body>
-        <script src="/scripts/bg.js"></script>
       </Html>
     )
   }

@@ -19,10 +19,23 @@ import TextField from '@material-ui/core/TextField'
 import InputAdornment from '@material-ui/core/InputAdornment'
 import Select from '@material-ui/core/Select'
 import Chip from '@material-ui/core/Chip'
+import Tooltip from '@material-ui/core/Tooltip'
 
 import DataContext from '../contexts/data'
 import NotificationContext from '../contexts/notification'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
+const cookieKey = 'forge-showroom-authorization'
+
+// @ts-ignore
+const getCookie = (name: string) => {
+  const value = '; ' + document.cookie
+  const parts = value.split('; ' + name + '=')
+  if (parts.length == 2)
+    return parts
+      .pop()
+      .split(';')
+      .shift()
+}
 
 const useStyles = makeStyles(() => ({
   grow: {
@@ -47,7 +60,7 @@ const useStyles = makeStyles(() => ({
     display: 'none'
   },
   icons: {
-    color: '#fff',
+    cursor: 'pointer',
     '& svg': {
       'font-size': '2rem'
     }
@@ -65,10 +78,7 @@ const useStyles = makeStyles(() => ({
     }
   },
   appBar: {
-    background: '#333',
-    '& svg': {
-      color: '#fff'
-    }
+    background: '#333'
   }
 }))
 
@@ -76,17 +86,35 @@ export const Header = () => {
   const classes = useStyles()
   const [searching, setSearching] = useState(false)
   const [filtering, setFiltering] = useState(false)
-  const dataContext = useContext(DataContext)
+  const [loggedIn, setLoggedIn] = useState(false)
   const [keyword, setKeyword] = useState('')
 
   const [selectedTags, setSelectedTags] = useState([])
-  const handleTagChange = event => setSelectedTags(event.target.value)
   const notificationContext = useContext(NotificationContext)
-  const tags = dataContext.filter.tags
+
+  const dataContext = useContext(DataContext)
+  dataContext.status.setAlert = message =>
+    notificationContext.alert({ message })
+  dataContext.status.setLoggedIn = setLoggedIn
+  const handleTagChange = event => {
+    if (event.target.value.includes('[Show All]')) {
+      dataContext.filter.ids = []
+      setSelectedTags([])
+      window.location.hash = ''
+    } else {
+      setSelectedTags(event.target.value)
+      setHash({ tags: event.target.value })
+    }
+  }
+  const tags = [
+    ...(dataContext.filter.tags || []),
+    { id: '[Bookmarked]', title: '[Bookmarked]' },
+    { id: '[Show All]', title: '[Show All]' }
+  ]
   const theme = createMuiTheme({
     palette: {
       primary: { main: '#fff' },
-      secondary: { main: 'rgb(206, 206, 206)' }
+      secondary: { main: 'rgb(239, 190, 9)' }
     }
   })
 
@@ -106,11 +134,57 @@ export const Header = () => {
         ? theme.typography.fontWeightRegular
         : theme.typography.fontWeightMedium
   })
+
+  const login = () => {
+    if (loggedIn) {
+      document.cookie = cookieKey + '=; expires=Thu, 01 Jan 1970 00:00:01 GMT;'
+      setLoggedIn(false)
+      dataContext.status.setLoggedIn(false)
+    } else window.location.href = '/api/auth'
+  }
+
+  const setHash = ({ tags } = { tags: null }) => {
+    const obj: any = {}
+    if (keyword) obj.keyword = keyword
+    if (selectedTags.length || tags) obj.tags = tags || selectedTags
+    if (
+      selectedTags.find(e => e == '[Bookmarked]') &&
+      dataContext.status.marked.length
+    )
+      obj.ids = dataContext.status.marked
+    window.location.hash = Object.keys(obj).length
+      ? encodeURIComponent(JSON.stringify(obj))
+      : ''
+  }
+
   useEffect(() => {
-    dataContext.setSelectedTags(selectedTags)
-    if (selectedTags.length)
-      window.location.hash = JSON.stringify({ tags: selectedTags })
+    if (selectedTags.find(e => e == '[Bookmarked]')) {
+      dataContext.filter.addIds(dataContext.getMarked())
+    } else {
+      dataContext.setSelectedTags(selectedTags)
+      dataContext.filter.removeIds(dataContext.getMarked())
+    }
   }, [selectedTags])
+
+  useEffect(() => {
+    if (window.location.hash) {
+      try {
+        const obj = JSON.parse(
+          decodeURIComponent(window.location.hash.slice(1))
+        )
+        if (obj.ids) dataContext.filter.addIds(obj.ids)
+        else {
+          if (obj.tags && obj.tags.length) setSelectedTags(obj.tags)
+          if (obj.keyword) {
+            dataContext.search(obj.keyword)
+            setKeyword(obj.keyword)
+          }
+        }
+      } catch (err) {
+        console.error(err)
+      }
+    }
+  }, [])
 
   return (
     <AppBar position="static" className={classes.appBar}>
@@ -142,25 +216,33 @@ export const Header = () => {
         <div className={classes.grow} />
         <div>
           <ThemeProvider theme={theme}>
-            <TextField
-              label="Enter to search"
-              className={`${
-                searching ? classes.searching : classes.toggleInputHidden
-              }`}
-              onChange={e => setKeyword(e.target.value)}
-              onBlur={() => setSearching(false)}
-              onKeyPress={e => {
-                if (e.key === 'Enter' && !dataContext.loading)
-                  dataContext.search(keyword)
-              }}
-              InputProps={{
-                startAdornment: (
-                  <InputAdornment position="start" className={classes.icons}>
-                    <SearchIcon onClick={() => setSearching(true)} />
-                  </InputAdornment>
-                )
-              }}
-            />
+            <Tooltip title="Click to search">
+              <TextField
+                label="Enter to search"
+                className={`${
+                  searching ? classes.searching : classes.toggleInputHidden
+                }`}
+                value={keyword}
+                onChange={e => setKeyword(e.target.value)}
+                onKeyPress={e => {
+                  if (e.key === 'Enter' && !dataContext.status.loadText) {
+                    setKeyword((e.target as any).value)
+                    dataContext.search(keyword)
+                    setHash()
+                  }
+                }}
+                InputProps={{
+                  startAdornment: (
+                    <InputAdornment position="start" className={classes.icons}>
+                      <SearchIcon
+                        onClick={() => setSearching(!searching)}
+                        color={keyword ? 'secondary' : 'primary'}
+                      />
+                    </InputAdornment>
+                  )
+                }}
+              />
+            </Tooltip>
             <IconButton
               className={classes.menuButton}
               onClick={() => setFiltering(!filtering)}
@@ -203,12 +285,13 @@ export const Header = () => {
             </Select>
             <IconButton
               className={classes.menuButton}
-              onClick={() => notificationContext.alert({ message: '2333' })}
+              onClick={login}
               edge="end"
               aria-label="account of current user"
-              color="inherit"
             >
-              <AccountCircle />
+              <Tooltip title={loggedIn ? 'Log out' : 'Log in'}>
+                <AccountCircle color={loggedIn ? 'secondary' : 'primary'} />
+              </Tooltip>
             </IconButton>
           </ThemeProvider>
         </div>

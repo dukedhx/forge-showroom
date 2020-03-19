@@ -21,13 +21,29 @@ const nextConfig = {
     // Will only be available on the server side
     FORGE_CLIENT_ID:process.env.FORGE_CLIENT_ID,
     FORGE_CLIENT_SECRET:process.env.FORGE_CLIENT_SECRET,
-    FORGE_CALLBACK_URL:process.env.FORGE_CALLBACK_URL
+    FORGE_CALLBACK_URL:process.env.FORGE_CALLBACK_URL,
+    CTF_CDA_ACCESS_TOKEN_INTERNAL:process.env.CTF_CDA_ACCESS_TOKEN_INTERNAL,
+
+    encryptionPassword:process.env.encryptionPassword,
+    encryptionSalt:process.env.encryptionSalt,
+    back4appUrl: process.env.back4appUrl,
+    back4appId: process.env.back4appId,
+    back4appKey:process.env.back4appKey,
   },
   env: {
+
     // Will be available on both server and client
     CTF_SPACE_ID: process.env.CTF_SPACE_ID,
-    CTF_CDA_ACCESS_TOKEN: process.env.CTF_CDA_ACCESS_TOKEN
-  }
+    CTF_CDA_ACCESS_TOKEN: process.env.CTF_CDA_ACCESS_TOKEN,
+    CTF_CDA_ACCESS_TOKEN_PREVIEW:process.env.CTF_CDA_ACCESS_TOKEN_PREVIEW,
+    
+  },
+  devIndicators: {
+   //autoPrerender: false,
+ },
+ typescript: {
+   ignoreDevErrors: false,
+ },
 };
 
 // next.config.js

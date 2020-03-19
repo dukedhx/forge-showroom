@@ -1,4 +1,4 @@
-import React, { useState, useContext } from 'react'
+import React, { useState, useContext, useEffect } from 'react'
 import Card from '@material-ui/core/Card'
 import CardActions from '@material-ui/core/CardActions'
 import CardContent from '@material-ui/core/CardContent'
@@ -16,14 +16,17 @@ import IconButton from '@material-ui/core/IconButton'
 import ExpandMoreIcon from '@material-ui/icons/ExpandMore'
 import ReactMarkdown from 'react-markdown/with-html'
 import Paper from '@material-ui/core/Paper'
+import CircularProgress from '@material-ui/core/CircularProgress'
 
 import Divider from '@material-ui/core/Divider'
 import Popover from '@material-ui/core/Popover'
 
-import Grid from '@material-ui/core/Grid'
 import Chip from '@material-ui/core/Chip'
 import Tooltip from '@material-ui/core/Tooltip'
 import DataContext from '../contexts/data'
+import Box from '@material-ui/core/Box'
+
+const iconActiveColor = '#3F50B5'
 const useStyles = makeStyles(theme => ({
   item: {
     position: 'absolute',
@@ -33,9 +36,13 @@ const useStyles = makeStyles(theme => ({
   grow: {
     flexGrow: 1
   },
-
+  internalTag: {
+    position: 'absolute',
+    top: '5px',
+    left: '5px'
+  },
   tag: {
-    width: '100%',
+    'margin-left': '2px',
     'text-overflow': 'ellipsis'
   },
   card: {
@@ -53,10 +60,6 @@ const useStyles = makeStyles(theme => ({
       transform: 'scale(1.1)',
       overflow: 'hidden',
       transition: '1s ease-in-out'
-    },
-    '&:hover .MuiGrid-container': {
-      transform: 'scale(0.9)',
-      transition: '1s ease-in-out'
     }
   },
   cardContent: {
@@ -73,8 +76,9 @@ const useStyles = makeStyles(theme => ({
     }
   },
   tagContainer: {
-    position: 'relative',
-    bottom: '0'
+    position: 'absolute',
+    bottom: 0,
+    right: 0
   },
   expand: {
     transform: 'rotate(0deg)',
@@ -91,21 +95,29 @@ const useStyles = makeStyles(theme => ({
   }
 }))
 
-const defaultProps = {}
-
 type PostBoxProps = {
-  id: number
+  id: number | string
   slug: string
   imageUrl: string
   title: string
   description?: string
   tags?: Array<string>
-} & typeof defaultProps
+  likes?: number
+  marked?: boolean
+  liked?: boolean
+  internal?: boolean
+}
+
+const repost = (url: string) =>
+  window.open(url.replace('*', encodeURIComponent(window.location.href)))
 
 export const PostBox = (props: PostBoxProps) => {
   const dataContext = useContext(DataContext)
   const classes = useStyles()
   const [collapsed, setCollapsed] = useState(false)
+  const [marked, setMarked] = useState(props.marked)
+  const [likes, setLikes] = useState(props.likes)
+  const [liked, setLiked] = useState(props.liked)
   const [anchorEl, setAnchorEl] = React.useState(null)
   const tags = props.tags.map(
     tag =>
@@ -114,23 +126,37 @@ export const PostBox = (props: PostBoxProps) => {
         dataContext.filter.tags[0]
       ).title
   )
+
+  useEffect(() => setMarked(props.marked), [props.marked])
+  useEffect(() => setLiked(props.liked), [props.liked])
+  useEffect(() => setLikes(props.likes), [props.likes])
+  const persistIds = (id: string | number, key: string) => {
+    let array = JSON.parse(localStorage.getItem(key) || '[]')
+    array.includes(id) ? (array = array.filter(e => e != id)) : array.push(id)
+    localStorage.setItem(key, JSON.stringify(array))
+  }
   return (
     <div className={classes.item}>
       <Paper className={classes['item-content']} elevation={3}>
         <Card className={classes.card}>
-          <CardMedia
-            className={classes.cardMedia}
-            image={props.imageUrl}
-            title="Image title"
-          >
-            <Grid container className={classes.tagContainer} spacing={1}>
-              <div className={classes.grow} />
+          <CardMedia className={classes.cardMedia} image={props.imageUrl}>
+            <Paper
+              className={classes.tagContainer}
+              style={
+                tags.length > 2
+                  ? { background: 'rgba(255,255,255,0.8)' }
+                  : { boxShadow: 'none', background: 'none' }
+              }
+            >
               {tags.splice(0, 2).map((tag, i) => (
-                <Grid item xs={3} key={i}>
-                  <Tooltip title={tag}>
-                    <Chip label={tag} className={classes.tag} color="primary" />
-                  </Tooltip>
-                </Grid>
+                <Tooltip title={tag} key={i}>
+                  <Chip
+                    size="small"
+                    label={tag}
+                    className={classes.tag}
+                    color="primary"
+                  />
+                </Tooltip>
               ))}
               {tags.length ? (
                 <IconButton
@@ -141,12 +167,10 @@ export const PostBox = (props: PostBoxProps) => {
                     setAnchorEl(collapsed ? null : event.currentTarget)
                     setCollapsed(!collapsed)
                   }}
-                  aria-label="show more"
                 >
                   <ExpandMoreIcon />
                 </IconButton>
               ) : null}
-              }
               <Popover
                 open={collapsed}
                 onClose={() => {
@@ -167,42 +191,87 @@ export const PostBox = (props: PostBoxProps) => {
                   <Chip label={tag} key={i} style={{ margin: '5px' }} />
                 ))}
               </Popover>
-            </Grid>
+            </Paper>
+            {props.internal && (
+              <Chip
+                size="small"
+                label="Internal"
+                className={classes.internalTag}
+                color="primary"
+              />
+            )}
           </CardMedia>
           <CardContent className={classes.cardContent}>
             <Typography gutterBottom variant="h5" component="h2">
               {props.title}
             </Typography>
             <Divider />
-
-            <Typography>
+            <Box m={0}>
               <ReactMarkdown escapeHtml={false} source={props.description} />
-            </Typography>
+            </Box>
           </CardContent>
 
           <CardActions>
             <Button size="small" color="primary">
-              <Link href="/post/[slug]" as={`/post/${props.slug}`} passHref>
+              <Link href="/post/[slug]" as={`/post/${props.slug}`}>
                 <a>View</a>
               </Link>
             </Button>
             <div className={classes.grow} />
-            <IconButton aria-label="add to favorites">
-              <Badge
-                badgeContent={Math.floor(Math.random() * 100)}
-                color="primary"
-              >
-                <FavoriteIcon />
-              </Badge>
+            <IconButton
+              style={{ color: liked ? iconActiveColor : '' }}
+              onClick={() => {
+                persistIds(props.id, 'forge-showroom-likes')
+                setLiked(!liked)
+                setLikes(liked ? likes - 1 : (likes || 0) + 1)
+                dataContext.addLikes(props.id)
+              }}
+            >
+              <Tooltip title={'I like this!'}>
+                {likes == undefined ? (
+                  <div style={{ position: 'relative' }}>
+                    <FavoriteIcon />
+                    <CircularProgress
+                      style={{
+                        position: 'absolute',
+                        left: '-7px',
+                        top: '-7px'
+                      }}
+                    />
+                  </div>
+                ) : (
+                  <Badge badgeContent={likes} color="primary">
+                    <FavoriteIcon />
+                  </Badge>
+                )}
+              </Tooltip>
             </IconButton>
-            <IconButton aria-label="add to favorites">
-              <TwitterIcon />
+            <IconButton
+              onClick={() => repost('https://twitter.com/intent/tweet?text=*')}
+            >
+              <Tooltip title="Repost to Twitter">
+                <TwitterIcon />
+              </Tooltip>
             </IconButton>
-            <IconButton aria-label="add to favorites">
-              <FacebookIcon />
+            <IconButton
+              onClick={() =>
+                repost('https://www.facebook.com/sharer/sharer.php?u=*')
+              }
+            >
+              <Tooltip title="Repost to Facebook">
+                <FacebookIcon />
+              </Tooltip>
             </IconButton>
-            <IconButton aria-label="add to favorites">
-              <BookmarkIcon />
+            <IconButton
+              style={{ color: marked ? iconActiveColor : '' }}
+              onClick={() => {
+                persistIds(props.id, 'forge-showroom-bookmarks')
+                setMarked(!marked)
+              }}
+            >
+              <Tooltip title={marked ? 'Un-bookmark' : 'Bookmark'}>
+                <BookmarkIcon />
+              </Tooltip>
             </IconButton>
           </CardActions>
         </Card>
@@ -210,5 +279,3 @@ export const PostBox = (props: PostBoxProps) => {
     </div>
   )
 }
-
-PostBox.defaultProps = defaultProps

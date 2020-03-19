@@ -1,4 +1,4 @@
-import React, { useContext, useState } from 'react'
+import React, { useContext, useState, useEffect, useRef } from 'react'
 import { ErrorBoundary } from '../error-boundary'
 import { Header, Footer } from 'components/layout'
 import Container from '@material-ui/core/Container'
@@ -10,7 +10,7 @@ import Modal from '@material-ui/core/Modal'
 import { Alert, AlertTitle } from '@material-ui/lab'
 import CloseIcon from '@material-ui/icons/Close'
 import IconButton from '@material-ui/core/IconButton'
-
+import backgroundAnimation from './bg'
 type Message = {
   message: string
   title?: string
@@ -27,7 +27,8 @@ const useStyles = makeStyles(theme => ({
     boxShadow: theme.shadows[5],
     width: '50%',
     top: '20%',
-    left: '25%'
+    left: '25%',
+    'word-break': 'break-all'
   },
   bgCanvas: {
     position: 'fixed',
@@ -40,6 +41,8 @@ const useStyles = makeStyles(theme => ({
 
 export const Layout = props => {
   const [isAlert, setIsAlert] = useState(false)
+  const bgCanvas = useRef(null)
+  const bgCanvasOutput = useRef(null)
 
   const [openModal, setOpenModal] = useState(false)
   const [alertMessage, setAlertMessage] = useState({ message: '', title: '' })
@@ -58,11 +61,13 @@ export const Layout = props => {
 
   const classes = useStyles()
   const layoutContext = useContext(LayoutContext)
-
+  useEffect(() => {
+    backgroundAnimation(bgCanvas.current, bgCanvasOutput.current)
+  }, [])
   return (
     <>
-      <div className={classes.bgCanvas} id="bgContainerSB233">
-        <div id="bgContainerSB233Output"></div>
+      <div className={classes.bgCanvas} ref={bgCanvas}>
+        <div ref={bgCanvasOutput}></div>
       </div>
       <CssBaseline />
       <NotificationContext.Provider value={notificationHandlers}>

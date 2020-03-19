@@ -1,11 +1,27 @@
 {
-"build": {
+  "build":{
   "env": {
-    "CTF_SPACE_ID": "@contentspaceid",
-    "CTF_CDA_ACCESS_TOKEN": "@contentaccesstoken",
-    "FORGE_CLIENT_ID": "@forgeclientid",
-    "FORGE_CLIENT_SECRET": "@forgeclientsecret",
-    "FORGE_CALLBACK_URL": "@forgecallbackurl"
+    "CTF_SPACE_ID": "@contentspaceid233",
+    "CTF_CDA_ACCESS_TOKEN": "@contentaccesstoken233",
+
+    "CTF_CDA_ACCESS_TOKEN_PREVIEW": "@contentaccesstokenpreview"
+
+
+
   }
-  }
+},
+"env":{
+  "CTF_SPACE_ID": "@contentspaceid233",
+  "CTF_CDA_ACCESS_TOKEN": "@contentaccesstoken233",
+  "FORGE_CLIENT_ID": "@forgeclientid",
+  "FORGE_CLIENT_SECRET": "@forgeclientsecret",
+  "FORGE_CALLBACK_URL": "@forgecallbackurl",
+  "CTF_CDA_ACCESS_TOKEN_INTERNAL": "@contentaccesstokeninternal",
+  "CTF_CDA_ACCESS_TOKEN_PREVIEW": "@contentaccesstokenpreview",
+  "encryptionPassword": "@encryptionpassword",
+  "encryptionSalt": "@encryptionsalt",
+  "back4appUrl": "@back4appurl",
+  "back4appId": "@back4appid",
+  "back4appKey": "@back4appkey"
+}
 }

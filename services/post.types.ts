@@ -7,6 +7,7 @@ export type Post = {
   title: any
   imageUrl: string
   body?: any
+  internal?: boolean
 }
 
 export type Page = {

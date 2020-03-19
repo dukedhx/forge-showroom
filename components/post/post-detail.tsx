@@ -1,7 +1,6 @@
 import React from 'react'
 import { Post } from 'services'
-//.import ReactMarkdownHtml from "react-markdown/with-html";
-import ReactMarkdown from 'react-markdown'
+import ReactMarkdown from 'react-markdown/with-html'
 
 import Paper from '@material-ui/core/Paper'
 import Typography from '@material-ui/core/Typography'
@@ -11,7 +10,6 @@ import Divider from '@material-ui/core/Divider'
 const useStyles = makeStyles(theme => ({
   mainFeaturedPost: {
     position: 'relative',
-    backgroundColor: 'rgba(255,255,255,0.9)',
     color: theme.palette.common.white,
     marginBottom: theme.spacing(4),
     backgroundSize: 'cover',
@@ -66,9 +64,9 @@ export const PostDetail = (props: PostDetailProps) => {
         </Grid>
       </Grid>
       <Divider />
-      <Grid container>
+      <div>
         <ReactMarkdown escapeHtml={false} source={post.body} />
-      </Grid>
+      </div>
     </>
   )
 }
