@@ -11,8 +11,8 @@ const useStyles = makeStyles(() => ({
     width: '100%',
     height: '60px',
     'line-height': '60px',
-    'background-color': '#495057'
-  }
+    'background-color': '#495057',
+  },
 }))
 
 export const Footer = () => {

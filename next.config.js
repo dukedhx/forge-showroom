@@ -1,5 +1,10 @@
 const withPlugins = require("next-compose-plugins");
 const TsConfigPathsPlugin = require("tsconfig-paths-webpack-plugin");
+const nextEnv = require('next-env');
+const dotenvLoad = require('dotenv-load');
+
+dotenvLoad();
+const withNextEnv = nextEnv();
 
 const nextConfig = {
   webpack: config => {
@@ -31,12 +36,13 @@ const nextConfig = {
     back4appKey:process.env.back4appKey,
   },
   env: {
-
+    "internalSecret":process.env.internalSecret,
+"previewSecret":process.env.previewSecret,
     // Will be available on both server and client
     CTF_SPACE_ID: process.env.CTF_SPACE_ID,
     CTF_CDA_ACCESS_TOKEN: process.env.CTF_CDA_ACCESS_TOKEN,
     CTF_CDA_ACCESS_TOKEN_PREVIEW:process.env.CTF_CDA_ACCESS_TOKEN_PREVIEW,
-    
+
   },
   devIndicators: {
    //autoPrerender: false,
@@ -47,4 +53,4 @@ const nextConfig = {
 };
 
 // next.config.js
-module.exports = withPlugins([], nextConfig);
+module.exports = withPlugins([withNextEnv], nextConfig);

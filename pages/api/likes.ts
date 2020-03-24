@@ -4,13 +4,13 @@ import fetch from 'node-fetch'
 export default async (request: NowRequest, response: NowResponse) => {
   const headers = {
     'X-Parse-Application-Id': process.env.back4appId,
-    'X-Parse-Master-Key': process.env.back4appKey
+    'X-Parse-Master-Key': process.env.back4appKey,
   }
   const id = request.query.id
   let r = await fetch(
     process.env.back4appUrl + (id ? `?where={"sbid":"${id}"}` : ''),
     { headers }
-  ).then(res => res.json())
+  ).then((res) => res.json())
 
   if (id) {
     const obj = r.results[0] || {}
@@ -18,8 +18,8 @@ export default async (request: NowRequest, response: NowResponse) => {
     r = await fetch(process.env.back4appUrl + (obj.objectId || ''), {
       headers,
       method: obj.objectId ? 'PUT' : 'POST',
-      body: JSON.stringify(body)
-    }).then(res => res.json())
+      body: JSON.stringify(body),
+    }).then((res) => res.json())
   }
   response.status(200).send(r.results)
 }

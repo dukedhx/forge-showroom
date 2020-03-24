@@ -1,62 +1,84 @@
-import React from "react";
-import { Layout } from "components/layout";
-import { PostDetail } from "components/post";
-import {  Post } from "services";
-import { NextSeo } from "next-seo";
+import React, { useEffect, useState } from 'react'
+import { Layout } from 'components/layout'
+import { PostDetail } from 'components/post'
+import { Post } from 'services'
+import { NextSeo } from 'next-seo'
 import Head from 'next/head'
-import * as DataStaticContext from '../../components/contexts/data';
-import { GetStaticPaths, GetStaticProps } from 'next';
+import * as DataStaticContext from '../../components/contexts/data'
+import { GetStaticPaths, GetStaticProps } from 'next'
 
 type PostDetailPageProps = {
-  post: Post;
-};
+  post: Post
+}
 
-const PostDetailPage = ({post}:PostDetailPageProps) =>{
+const PostDetailPage = (props: PostDetailPageProps) => {
+  const [post, setPost] = useState(props.post)
+  const [statusText, setStatusText] = useState('Not Found')
+  useEffect(() => {
+    if (!post) {
+      const query = new URLSearchParams(window.location.search)
+      const secret = query.get('sb')
 
-
-    return (
-      <>
+      const id = location.pathname.split('/').pop()
+      if (
+        id &&
+        (secret == process.env.internalSecret ||
+          secret == process.env.previewSecret)
+      ) {
+        setStatusText('Loading ...')
+        DataStaticContext.loadEntryById(
+          id,
+          secret == process.env.internalSecret,
+          secret == process.env.previewSecret
+        )
+          .then((e) => setPost(e))
+          .catch((err) => setStatusText((err && err.message) || err))
+      }
+    }
+  }, [])
+  return (
+    <>
       <Head>
-           <title>Forge Showroom - {post&&post.title}</title>
-           <meta charSet="utf-8" />
-           <meta name="viewport" content="initial-scale=1.0, width=device-width" />
-         </Head>
+        <title>Forge Showroom - {post && post.title}</title>
+        <meta charSet="utf-8" />
+        <meta name="viewport" content="initial-scale=1.0, width=device-width" />
+      </Head>
       <Layout>
-        {post&&<NextSeo
-          openGraph={{
-            type: "article",
-            title: post.title,
-            description: post.description,
-            images: [
-              {
-                url: post.imageUrl,
-                width: 850,
-                height: 650,
-              }
-            ]
-          }}
-          title={post.title}
-          description={post.description}
-        />}
+        {post && (
+          <NextSeo
+            openGraph={{
+              type: 'article',
+              title: post.title,
+              description: post.description,
+              images: [
+                {
+                  url: post.imageUrl,
+                  width: 850,
+                  height: 650,
+                },
+              ],
+            }}
+            title={post.title}
+            description={post.description}
+          />
+        )}
 
-            {!post && <div>Loading...</div>}
-            {post && <PostDetail post={post} />}
-
+        {post ? <PostDetail post={post} /> : <pre>{statusText}</pre>}
       </Layout>
-      </>
-    )
+    </>
+  )
 }
 
-export const getStaticProps:GetStaticProps = async (ctx:any) =>{
-  const { slug } = ctx.params;
-  const post = await DataStaticContext.loadEntryById(slug);
-  return { props:{ post} };
+export const getStaticProps: GetStaticProps = async (ctx: any) => {
+  const { slug } = ctx.params
+  const post = await DataStaticContext.loadEntryById(slug)
+  return { props: { post } }
 }
 
-export const getStaticPaths: GetStaticPaths = async()=>{
+export const getStaticPaths: GetStaticPaths = async () => {
   const entries = await DataStaticContext.loadEntries()
-  const paths = entries.map(post => `/post/${post.slug}`)
-  return { paths, fallback: false  }
+  const paths = entries.map((post) => `/post/${post.slug}`)
+  return { paths, fallback: true }
 }
 
 export default PostDetailPage

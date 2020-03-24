@@ -1,7 +1,7 @@
 export type Post = {
   id: number
   description?: string
-  date: string
+  date?: string
   slug: string
   tags?: Array<any>
   title: any
@@ -11,6 +11,7 @@ export type Post = {
 }
 
 export type Page = {
+  id:string
   title: string
   description?: string
   slug: string
@@ -20,4 +21,17 @@ export type Page = {
 export type Tag = {
   title: string
   id: string
+}
+
+export type MenuItem = {
+  title: string,
+  pageId?: string
+  url?:string
+}
+
+export type Menu = {
+  page?: string
+  url?:string
+  title: string
+  items: Array<MenuItem>
 }

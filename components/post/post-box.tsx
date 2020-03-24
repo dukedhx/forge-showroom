@@ -27,29 +27,29 @@ import DataContext from '../contexts/data'
 import Box from '@material-ui/core/Box'
 
 const iconActiveColor = '#3F50B5'
-const useStyles = makeStyles(theme => ({
+const useStyles = makeStyles((theme) => ({
   item: {
     position: 'absolute',
     width: '24%',
-    padding: '10px'
+    padding: '10px',
   },
   grow: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   internalTag: {
     position: 'absolute',
     top: '5px',
-    left: '5px'
+    left: '5px',
   },
   tag: {
     'margin-left': '2px',
-    'text-overflow': 'ellipsis'
+    'text-overflow': 'ellipsis',
   },
   card: {
     background: 'none',
     height: '100%',
     display: 'flex',
-    flexDirection: 'column'
+    flexDirection: 'column',
   },
   cardMedia: {
     position: 'relative',
@@ -59,40 +59,50 @@ const useStyles = makeStyles(theme => ({
     '&:hover': {
       transform: 'scale(1.1)',
       overflow: 'hidden',
-      transition: '1s ease-in-out'
-    }
+      transition: '1s ease-in-out',
+    },
   },
   cardContent: {
-    flexGrow: 1
+    flexGrow: 1,
   },
   [theme.breakpoints.down('lg')]: {
     item: {
-      width: '30%'
-    }
+      width: '33%',
+    },
   },
   [theme.breakpoints.down('md')]: {
     item: {
-      width: '45%'
-    }
+      width: '50%',
+    },
+  },
+  [theme.breakpoints.down('sm')]: {
+    item: {
+      width: '100%',
+    },
+    cardContent: {
+      '& h2': {
+        fontSize: '1.2rem',
+      },
+    },
   },
   tagContainer: {
     position: 'absolute',
     bottom: 0,
-    right: 0
+    right: 0,
   },
   expand: {
     transform: 'rotate(0deg)',
     marginLeft: 'auto',
     transition: theme.transitions.create('transform', {
-      duration: theme.transitions.duration.shortest
-    })
+      duration: theme.transitions.duration.shortest,
+    }),
   },
   expandOpen: {
-    transform: 'rotate(180deg)'
+    transform: 'rotate(180deg)',
   },
   'item-content': {
-    background: 'rgba(255,255,255,0.9)'
-  }
+    background: 'rgba(255,255,255,0.9)',
+  },
 }))
 
 type PostBoxProps = {
@@ -120,9 +130,9 @@ export const PostBox = (props: PostBoxProps) => {
   const [liked, setLiked] = useState(props.liked)
   const [anchorEl, setAnchorEl] = React.useState(null)
   const tags = props.tags.map(
-    tag =>
+    (tag) =>
       (
-        dataContext.filter.tags.find(e => e.id == tag) ||
+        dataContext.filter.tags.find((e) => e.id == tag) ||
         dataContext.filter.tags[0]
       ).title
   )
@@ -132,7 +142,7 @@ export const PostBox = (props: PostBoxProps) => {
   useEffect(() => setLikes(props.likes), [props.likes])
   const persistIds = (id: string | number, key: string) => {
     let array = JSON.parse(localStorage.getItem(key) || '[]')
-    array.includes(id) ? (array = array.filter(e => e != id)) : array.push(id)
+    array.includes(id) ? (array = array.filter((e) => e != id)) : array.push(id)
     localStorage.setItem(key, JSON.stringify(array))
   }
   return (
@@ -150,12 +160,7 @@ export const PostBox = (props: PostBoxProps) => {
             >
               {tags.splice(0, 2).map((tag, i) => (
                 <Tooltip title={tag} key={i}>
-                  <Chip
-                    size="small"
-                    label={tag}
-                    className={classes.tag}
-                    color="primary"
-                  />
+                  <Chip size="small" label={tag} className={classes.tag} />
                 </Tooltip>
               ))}
               {tags.length ? (
@@ -163,7 +168,7 @@ export const PostBox = (props: PostBoxProps) => {
                   className={`${
                     collapsed ? classes.expandOpen : classes.expand
                   }`}
-                  onClick={event => {
+                  onClick={(event) => {
                     setAnchorEl(collapsed ? null : event.currentTarget)
                     setCollapsed(!collapsed)
                   }}
@@ -180,11 +185,11 @@ export const PostBox = (props: PostBoxProps) => {
                 anchorEl={anchorEl}
                 anchorOrigin={{
                   vertical: 'bottom',
-                  horizontal: 'center'
+                  horizontal: 'center',
                 }}
                 transformOrigin={{
                   vertical: 'top',
-                  horizontal: 'center'
+                  horizontal: 'center',
                 }}
               >
                 {tags.map((tag, i) => (
@@ -197,7 +202,6 @@ export const PostBox = (props: PostBoxProps) => {
                 size="small"
                 label="Internal"
                 className={classes.internalTag}
-                color="primary"
               />
             )}
           </CardMedia>
@@ -213,9 +217,15 @@ export const PostBox = (props: PostBoxProps) => {
 
           <CardActions>
             <Button size="small" color="primary">
-              <Link href="/post/[slug]" as={`/post/${props.slug}`}>
-                <a>View</a>
-              </Link>
+              {props.internal ? (
+                <a href={`/post/${props.id}?sb=${process.env.internalSecret}`}>
+                  View
+                </a>
+              ) : (
+                <Link href="/post/[slug]" as={`/post/${props.slug}`}>
+                  <a>View</a>
+                </Link>
+              )}
             </Button>
             <div className={classes.grow} />
             <IconButton
@@ -235,7 +245,7 @@ export const PostBox = (props: PostBoxProps) => {
                       style={{
                         position: 'absolute',
                         left: '-7px',
-                        top: '-7px'
+                        top: '-7px',
                       }}
                     />
                   </div>

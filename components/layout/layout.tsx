@@ -1,10 +1,9 @@
-import React, { useContext, useState, useEffect, useRef } from 'react'
+import React, { useState, useEffect, useRef } from 'react'
 import { ErrorBoundary } from '../error-boundary'
-import { Header, Footer } from 'components/layout'
+import { Header, Footer, HeaderProps } from 'components/layout'
 import Container from '@material-ui/core/Container'
 import CssBaseline from '@material-ui/core/CssBaseline'
 import { makeStyles } from '@material-ui/core/styles'
-import LayoutContext from '../contexts/layout'
 import NotificationContext from '../contexts/notification'
 import Modal from '@material-ui/core/Modal'
 import { Alert, AlertTitle } from '@material-ui/lab'
@@ -16,11 +15,18 @@ type Message = {
   title?: string
 }
 
-const useStyles = makeStyles(theme => ({
+type LayoutProps = {
+  headerSettings?: HeaderProps
+  maxWidth?: false | 'lg' | 'xs' | 'sm' | 'md' | 'xl'
+  background?: string
+  children?: any
+}
+
+const useStyles = makeStyles((theme) => ({
   container: {
     'min-height': 'calc(100vh - 145px)',
     width: '95%',
-    padding: '20px 20px 0 5%'
+    padding: '20px 20px 0 5%',
   },
   modal: {
     position: 'absolute',
@@ -28,18 +34,23 @@ const useStyles = makeStyles(theme => ({
     width: '50%',
     top: '20%',
     left: '25%',
-    'word-break': 'break-all'
+    'word-break': 'break-all',
   },
   bgCanvas: {
     position: 'fixed',
     'z-index': '-233',
     width: '100%',
     height: '100vh',
-    '$ > div': { height: '100vh' }
-  }
+    '$ > div': { height: '100vh' },
+  },
 }))
 
-export const Layout = props => {
+export const Layout = ({
+  headerSettings,
+  maxWidth,
+  background,
+  children,
+}: LayoutProps) => {
   const [isAlert, setIsAlert] = useState(false)
   const bgCanvas = useRef(null)
   const bgCanvasOutput = useRef(null)
@@ -56,11 +67,10 @@ export const Layout = props => {
   const notificationHandlers = {
     alert: (alert: Message) => showMessage(alert, true),
     notify: (alert: Message) => showMessage(alert, false),
-    dialogue: (alert: Message) => showMessage(alert, false)
+    dialogue: (alert: Message) => showMessage(alert, false),
   }
 
   const classes = useStyles()
-  const layoutContext = useContext(LayoutContext)
   useEffect(() => {
     backgroundAnimation(bgCanvas.current, bgCanvasOutput.current)
   }, [])
@@ -71,15 +81,19 @@ export const Layout = props => {
       </div>
       <CssBaseline />
       <NotificationContext.Provider value={notificationHandlers}>
-        <Header />
+        <Header
+          menus={headerSettings && headerSettings.menus}
+          showFilter={headerSettings && headerSettings.showFilter}
+          asyncSearch={headerSettings && headerSettings.asyncSearch}
+        />
         <ErrorBoundary>
           <main>
             <Container
-              maxWidth={layoutContext.layout.maxWidth}
+              maxWidth={maxWidth || 'lg'}
               className={classes.container}
-              style={{ background: layoutContext.layout.background }}
+              style={{ background: background || 'rgba(255,255,255,0.9)' }}
             >
-              {props.children}
+              {children}
             </Container>
           </main>
         </ErrorBoundary>

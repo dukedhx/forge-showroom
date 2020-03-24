@@ -4,9 +4,10 @@
     "CTF_SPACE_ID": "@contentspaceid233",
     "CTF_CDA_ACCESS_TOKEN": "@contentaccesstoken233",
 
-    "CTF_CDA_ACCESS_TOKEN_PREVIEW": "@contentaccesstokenpreview"
+    "CTF_CDA_ACCESS_TOKEN_PREVIEW": "@contentaccesstokenpreview",
 
-
+    "internalSecret":"@sb233internalsecret",
+"previewSecret":"@sb233previewsecret"
 
   }
 },
@@ -22,6 +23,9 @@
   "encryptionSalt": "@encryptionsalt",
   "back4appUrl": "@back4appurl",
   "back4appId": "@back4appid",
-  "back4appKey": "@back4appkey"
+  "back4appKey": "@back4appkey",
+  "internalSecret":"@sb233internalsecret",
+  "previewSecret":"@sb233previewsecret"
+
 }
 }
