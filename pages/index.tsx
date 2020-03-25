@@ -14,6 +14,10 @@ import MenuItem from '@material-ui/core/MenuItem'
 import NotificationContext from '../components/contexts/notification'
 import Hidden from '@material-ui/core/Hidden';
 
+declare global {
+  interface Window { muuri: any; }
+}
+
 type PostPageProps = {
   entries: Array<Post>
   pages: Array<Page>
@@ -43,13 +47,12 @@ const PostPage = ({ entries, tags,menusProp,pages }: PostPageProps) => {
   const convertMenu = e => Object.assign({},e,{page:e.page&&(pages.find(p=>p.id==e.page)||{}).slug})
   const menus=(menusProp||[]).map(e=> Object.assign({},convertMenu(e),{items:(e.items||[]).map(e=>convertMenu(e))}))
   const container = useRef<HTMLDivElement>(null)
-  let muuri
   const [currentEntries, setEntries] = useState(entries)
   const dataContext = useContext(DataContext)
   const [likes, setLikes] = useState({})
   const [page, setPage] = useState(1)
   const [perPage, setPerPage] = useState(30)
-  const [loadText, setLoadText] = useState('')
+  const [loadText, setLoadText] = useState('Preparing contents ...')
   const [marked, setMarked] = useState([])
   const [liked, setLiked] = useState([])
   const [showContents, setShowContents] = useState(false)
@@ -90,9 +93,8 @@ dataContext.status.setLoggedIn=async loggedIn=>{
   }, [])
 
   useEffect(() => {
-    if(muuri) setLoadText('Preparing contents ...')
-    muuri = muuri || import('muuri')
-    muuri.then(mod => {
+    window.muuri = window.muuri || import('muuri')
+    window.muuri.then(mod => {
       new mod.default(container.current)
       setShowContents(true)
       if(loadText=='Preparing contents ...') setLoadText('')
@@ -102,7 +104,7 @@ dataContext.status.setLoggedIn=async loggedIn=>{
   const renderPostList = () => {
     const start = (page - 1) * perPage - 1
     return currentEntries
-      .slice(start > 0 ? start : 0, start + perPage)
+      .slice(start > 0 ? start : 0, start + perPage).sort((a,b)=>Number(b.internal)-Number(a.internal))
       .map((entry, i) => (
         <PostBox
           key={i}

@@ -49,7 +49,8 @@ export class PostApi {
         entry => entry.sys.id
       ),
       title: (rawPost.title || {})['en-US'] || rawPost.title || '',
-      imageUrl: (rawPost.imageUrl || {})['en-US'] || rawPost.imageUrl || ''
+      imageUrl: (rawPost.imageUrl || {})['en-US'] || rawPost.imageUrl || '',
+      order:rawPost.order||0
     }
   }
 

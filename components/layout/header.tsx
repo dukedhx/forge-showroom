@@ -41,12 +41,12 @@ const createCookie = (name: string, value: string, hours?: number) => {
     name + '=' + value + '; expires=' + date.toUTCString() + '; path=/'
 }
 
-const useStyles = makeStyles((theme) => ({
+const useStyles = makeStyles(() => ({
   grow: {
     flexGrow: 1,
   },
-  logo: { height: '50px', width: 'auto' },
-  small: { height: '30px', display: 'none' },
+  logo: { height: '50px', },
+  smallLogo: { height: '30px', },
 
   menuButton: {},
   toggleInputHidden: {
@@ -82,10 +82,6 @@ const useStyles = makeStyles((theme) => ({
   },
   appBar: {
     background: '#333',
-  },
-  [theme.breakpoints.down('sm')]: {
-    big: { display: 'none' },
-    small: { display: 'block' },
   },
 
 }))
@@ -222,14 +218,20 @@ export const Header = ({ menus, asyncSearch, showFilter }: HeaderProps) => {
   return (
     <AppBar position="static" className={classes.appBar}>
       <Toolbar>
+        <a href='/'>
+        <Hidden smDown>
         <img
           src="/images/logo--forge--white.png"
-          className={`${classes.logo} ${classes.big}`}
+          className={classes.logo}
         ></img>
+        </Hidden>
+        <Hidden mdUp>
         <img
           src="/favicon.ico"
-          className={`${classes.logo} ${classes.small}`}
+          className={`${classes.logo} ${classes.smallLogo}`}
         ></img>
+        </Hidden>
+        </a>
         <div>
           <Hidden smDown>{getMenus('#fff')}</Hidden>
         </div>

@@ -8,6 +8,7 @@ export type Post = {
   imageUrl: string
   body?: any
   internal?: boolean
+  order:number
 }
 
 export type Page = {

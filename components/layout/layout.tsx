@@ -10,6 +10,7 @@ import { Alert, AlertTitle } from '@material-ui/lab'
 import CloseIcon from '@material-ui/icons/Close'
 import IconButton from '@material-ui/core/IconButton'
 import backgroundAnimation from './bg'
+import ReactGA from 'react-ga'
 type Message = {
   message: string
   title?: string
@@ -72,6 +73,8 @@ export const Layout = ({
 
   const classes = useStyles()
   useEffect(() => {
+    ReactGA.initialize('UA-161854396-1')
+    ReactGA.pageview(window.location.pathname + window.location.search)
     backgroundAnimation(bgCanvas.current, bgCanvasOutput.current)
   }, [])
   return (
