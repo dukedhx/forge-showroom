@@ -4,14 +4,14 @@ import NProgress from 'nprogress'
 import { DefaultSeo } from 'next-seo'
 
 const DEFAULT_SEO = {
-  title: 'Blog Tutorial Web',
-  description: 'Awesome blog tutorial website',
+  title: 'Forge Showroom',
+  description: 'A curated portfolio of samples and solutions developed using Forge',
   openGraph: {
     type: 'website',
     locale: 'en',
-    title: 'Blog Tutorial website',
-    description: 'Awesome blog tutorial website',
-    site_name: 'BlogTutorial'
+    title: 'Forge Showroom',
+    description: 'A curated portfolio of samples and solutions developed using Forge.',
+    site_name: 'Forge-Showroom'
   }
 }
 
@@ -40,7 +40,7 @@ export default class CustomApp extends App {
     return (
       <>
         <DefaultSeo {...DEFAULT_SEO} />
-        <Component {...pageProps} />;
+        <Component {...pageProps} />
       </>
     )
   }

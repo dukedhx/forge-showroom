@@ -13,7 +13,7 @@ type PostDetailPageProps = {
 
 const PostDetailPage = (props: PostDetailPageProps) => {
   const [post, setPost] = useState(props.post)
-  const [statusText, setStatusText] = useState('Not Found')
+  const [statusText, setStatusText] = useState('Loading ...')
   useEffect(() => {
     if (!post) {
       const query = new URLSearchParams(window.location.search)
@@ -25,7 +25,6 @@ const PostDetailPage = (props: PostDetailPageProps) => {
         (secret == process.env.internalSecret ||
           secret == process.env.previewSecret)
       ) {
-        setStatusText('Loading ...')
         DataStaticContext.loadEntryById(
           id,
           secret == process.env.internalSecret,
@@ -33,7 +32,7 @@ const PostDetailPage = (props: PostDetailPageProps) => {
         )
           .then((e) => setPost(e))
           .catch((err) => setStatusText((err && err.message) || err))
-      }
+      } else setStatusText('Not Found')
     }
   }, [])
   return (
